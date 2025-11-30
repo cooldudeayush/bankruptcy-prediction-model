@@ -1,62 +1,86 @@
 
-# 📘 Bankruptcy Prediction Using LightGBM
 
- Top-15 Feature Models • Optimal Threshold Search • SHAP Explainability
+# 📘 Bankruptcy Prediction System
 
-This repository contains a complete pipeline for predicting corporate bankruptcy using LightGBM, custom Top-15 feature subsets, optimal F1 thresholds, and SHAP feature explainability.
+### **LightGBM Models • 15-Feature Horizons • Optimized Thresholds • SHAP Explainability • Streamlit App**
 
-The project is designed for high interpretability, efficient modeling, and high F1 performance on imbalanced datasets.
+This repository contains a complete end-to-end bankruptcy prediction system using:
 
----
+* **LightGBM Gradient Boosting Models**
+* **Top 15 Financial Attributes Per Prediction Horizon**
+* **Optimal Threshold Search to Maximize F1**
+* **Clean, interpretable SHAP visualizations**
+* **Interactive Streamlit Web App for real-time predictions**
+* **Saved `.pkl` models for deployment**
 
- 🚀 Project Highlights
-
- ✅ Top-15 Feature Models per Horizon
-
-Each prediction horizon uses its own best-performing feature subset (e.g., Attr5, Attr27, Attr46…).
-These features were pre-selected using statistical + model-driven importance ranking.
-
-✅ LightGBM with F1-Optimized Thresholding
-
-Instead of using the default 0.50 probability cutoff, each model searches thresholds from `0.05 → 0.95` and picks the best one for maximum F1-score.
-
- ✅ No Over-Processing
-
-The pipeline follows best practices for tree models:
-
-* No scaling
-* No iterative imputation
-* Only median imputation
-  This avoids distortions and improves model stability.
-
- ✅ Explainability With SHAP
-
-SHAP summary & bar plots are generated for all Top-15 feature models:
-
-* Feature contribution analysis
-* Global importance
-* Per-horizon interpretability
+The project is designed for **high F1-score**, **robust handling of imbalanced datasets**, and **clear interpretability** for practical financial use.
 
 ---
 
+# 🚀 Features
 
+### 🔹 **1. Top 15 Features Per Horizon**
+
+For each prediction horizon (1–5 years ahead), only the 15 most important financial attributes are used.
+This improves performance, reduces noise, and increases interpretability.
+
+### 🔹 **2. LightGBM With F1–Optimized Thresholding**
+
+Each horizon searches thresholds from **0.05 → 0.95** and selects the one maximizing **validation F1**.
+
+### 🔹 **3. SHAP Explainability**
+
+Global and local interpretability through:
+
+* SHAP Beeswarm Summary Plot
+* SHAP Bar Feature Importance Plot
+
+### 🔹 **4. Interactive Streamlit App**
+
+A user-friendly frontend where anyone can input financial attributes and get live bankruptcy predictions.
+
+### 🔹 **5. Production-ready `.pkl` Models**
+
+Easily loadable for APIs, dashboards, or batch scoring.
+
+---
+
+# 📁 Repository Structure
+
+```
+├── Final_Master_Code.ipynb        # Full training + thresholding + SHAP notebook
+├── streamlit_app.py               # Streamlit interface (see below)
+├── models/
+│   ├── model_h1.pkl
+│   ├── model_h2.pkl
+│   ├── model_h3.pkl
+│   ├── model_h4.pkl
+│   └── model_h5.pkl
+├── data/                          # Original datasets (optional)
+├── README.md                      # This file
+└── requirements.txt               # Libraries needed
+```
+
+---
 
 # 🧠 Methodology
 
- 1️⃣ Data Preparation
+## **1️⃣ Data Preparation**
 
-For each horizon:
+For each prediction horizon **h = 1 to 5**:
 
 * Load dataset
-* Use Top-15 preselected features
-* Perform a 70-15-15 stratified split (train / validation / test)
-* Apply median imputation for missing values
+* Select top 15 features (`top_features[h]`)
+* Split into train / validation / test sets:
+
+  * **70% Train**
+  * **15% Validation**
+  * **15% Test**
+* Apply **median imputation** (no scaling to preserve tree performance)
 
 ---
 
- 2️⃣ Model Training (LightGBM)
-
-Key parameters used:
+## **2️⃣ LightGBM Modeling**
 
 ```python
 LGBMClassifier(
@@ -72,141 +96,187 @@ LGBMClassifier(
 )
 ```
 
+Why this works:
 
- 3️⃣ Optimal Threshold Search (F1-Maximization)
-
-For each horizon:
-
-* Compute validation probabilities
-* Test thresholds from 0.05 to 0.95
-* Pick the threshold that achieves maximum validation F1
-* Apply it to the test set
-
-Outputs include:
-
-| Metric              | Value           |
-| ------------------- | --------------- |
-| Validation Accuracy | ✔               |
-| Validation F1       | ✔               |
-| Validation AUC      | ✔               |
-| Test Accuracy       | ✔               |
-| Test F1             | ✔               |
-| Test AUC            | ✔               |
-| Best Threshold      | ✔ (per horizon) |
+* Trees do not need scaling
+* LightGBM handles missing values
+* `scale_pos_weight` handles class imbalance
+* Large number of boosting rounds + small learning rate improves stability
 
 ---
 
- 4️⃣ Model Saving
+## **3️⃣ Optimal Threshold Search (F1 Maximization)**
 
-Each final LightGBM pipeline is saved as:
+Instead of default threshold = 0.50, each horizon tests:
 
 ```
-model_h{horizon}_top15_improved.pkl
+threshold ∈ {0.05, 0.06, ..., 0.95}
 ```
 
-These can be loaded with:
+The threshold that gives the **highest validation F1** is selected and applied to the test set.
+
+Stored in:
+
+```
+best_thresholds[horizon]
+```
+
+---
+
+## **4️⃣ Model Saving**
+
+Each fitted model pipeline is saved as:
+
+```
+model_h{horizon}.pkl
+```
+
+Load using:
 
 ```python
 import joblib
-model = joblib.load("model_h3_top15_improved.pkl")
+model = joblib.load("model_h3.pkl")
 ```
 
 ---
 
- 5️⃣ Explainability with SHAP
+## **5️⃣ SHAP Explainability**
 
-For each model, SHAP generates:
+Two plots are generated per horizon:
 
- ✔ SHAP Summary Plot
+### ✔ SHAP Summary (Beeswarm)
 
-Shows how features contribute to predictions.
+Shows how each feature pushes predictions positive or negative.
 
- ✔ SHAP Bar Plot
+### ✔ SHAP Bar Plot
 
-Shows mean absolute SHAP value for each feature.
+Shows the mean absolute importance of each feature.
 
-Example code snippet:
+Example:
 
 ```python
 explainer = shap.TreeExplainer(model)
 shap_values = explainer.shap_values(X_transformed)
 
-shap.summary_plot(
-    shap_values,
-    X_transformed,
-    feature_names=feats,
-    max_display=20
-)
+shap.summary_plot(shap_values, X_transformed, feature_names=feats)
 ```
 
 ---
 
-# 📊 Sample SHAP Output
+# 🖥 Streamlit Application
 
-*(You can insert images here once SHAP outputs are exported.)*
+An interactive app is included for real-time prediction:
 
-* SHAP Beeswarm Plot
-* SHAP Bar Importance Plot
+```
+streamlit run streamlit_app.py
+```
+
+### Features:
+
+* Select prediction horizon (1–5 years)
+* Input values for top 15 financial attributes
+* View bankruptcy probability & classification
+* Clean, responsive UI
+
+### Example Code (Included in repo)
+
+```python
+import streamlit as st
+import pandas as pd
+import joblib
+
+st.set_page_config(page_title="Bankruptcy Prediction App", layout="centered")
+
+# Load models
+models = {
+    1: joblib.load("model_h1.pkl"),
+    2: joblib.load("model_h2.pkl"),
+    3: joblib.load("model_h3.pkl"),
+    4: joblib.load("model_h4.pkl"),
+    5: joblib.load("model_h5.pkl"),
+}
+
+# Top 15 features per horizon
+top_features = {
+    1: [...],
+    2: [...],
+    3: [...],
+    4: [...],
+    5: [...]
+}
+
+st.title("📊 Bankruptcy Prediction App")
+st.write("Enter company financial attributes to predict bankruptcy probability.")
+
+# Horizon selection
+horizon = st.selectbox("Select Prediction Horizon:", [1, 2, 3, 4, 5], index=0)
+model = models[horizon]
+features = top_features[horizon]
+
+input_data = {}
+for feat in features:
+    input_data[feat] = st.number_input(feat, value=0.0, format="%.6f")
+df_input = pd.DataFrame([input_data])
+
+if st.button("Predict Bankruptcy Risk"):
+    prob = model.predict_proba(df_input)[0][1]
+    pred = model.predict(df_input)[0]
+
+    st.subheader("🔍 Prediction Result")
+    st.write(f"**Bankruptcy Probability:** `{prob:.3f}`")
+
+    if pred == 1:
+        st.error("⚠ The model predicts: BANKRUPT")
+    else:
+        st.success("✅ SAFE / NOT BANKRUPT")
+```
 
 ---
 
-# 📦 Installation
+# 📊 Model Performance Summary
 
- 1. Clone the repository
+Each horizon produces:
+
+| Metric       | Description                                      |
+| ------------ | ------------------------------------------------ |
+| **val_acc**  | Validation accuracy                              |
+| **val_f1**   | Validation F1-score (used for threshold picking) |
+| **val_auc**  | Validation ROC AUC                               |
+| **test_acc** | Test accuracy                                    |
+| **test_f1**  | Test F1-score                                    |
+| **test_auc** | Test ROC AUC                                     |
+| **best_thr** | Optimal decision threshold                       |
+
+SHAP plots help interpret which features drive bankruptcy risk across horizons.
+
+---
+
+# 🔧 Installation
+
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/<your-username>/<repo-name>.git
-cd <repo-name>
+git clone https://github.com/<your-username>/<repo>.git
+cd <repo>
 ```
 
- 2. Install dependencies
+### 2. Install required packages
 
 ```bash
 pip install -r requirements.txt
 ```
 
----
+### 3. Run Streamlit App
 
-# ▶️ Running the Notebook
-
-Simply open:
-
-```
-Final_Master_Code.ipynb
+```bash
+streamlit run streamlit_app.py
 ```
 
-and run all cells to:
-
-* Train all Top-15 models
-* Find optimal thresholds
-* Evaluate test performance
-* Generate SHAP plots
-* Save trained models
-
 ---
 
-# 🧪 Performance Summary
+=
+# 📬 Contact
 
-Each horizon achieves:
-
-* High accuracy (0.96–0.98)
-* Strong F1 scores (0.63–0.76+)
-* Excellent AUC (0.92–0.96+)
-
-Threshold optimization significantly improves F1 against default 0.50 cutoffs.
-
----
-
-# 🛠 Tools Used
-
-| Tool               | Purpose                      |
-| ------------------ | ---------------------------- |
-| LightGBM       | Gradient boosting model      |
-| SHAP           | Explainability               |
-| scikit-learn   | Splitting, metrics, pipeline |
-| pandas / numpy | Data wrangling               |
-| joblib         | Model persistence            |
-| matplotlib     | Visualizations               |
-
+Feel free to reach out to Subhojit Sapui, Ayush Ranjan , Aditi Pandey regarding this project.
 
 
