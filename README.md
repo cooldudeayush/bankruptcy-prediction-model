@@ -56,7 +56,7 @@ Easily loadable for APIs, dashboards, or batch scoring.
 │   ├── model_h3.pkl
 │   ├── model_h4.pkl
 │   └── model_h5.pkl
-├── data/                          # Original datasets (optional)
+├── data/                          # Original datasets 
 ├── README.md                      # This file
 └── requirements.txt               # Libraries needed
 ```
