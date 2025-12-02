@@ -58,7 +58,7 @@ Easily loadable for APIs, dashboards, or batch scoring.
 │   └── model_h5.pkl
 ├── data/                          # Original datasets 
 ├── README.md                      # This file
-└── requirements.txt               # Libraries needed
+└── 
 ```
 
 ---
@@ -263,7 +263,14 @@ cd <repo>
 ### 2. Install required packages
 
 ```bash
-pip install -r requirements.txt
+Pandas
+Numpy
+arff (to read the data)
+sklearn
+shap
+joblib
+
+
 ```
 
 ### 3. Run Streamlit App
